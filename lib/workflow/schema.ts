@@ -48,6 +48,9 @@ export const workflowRunSchema = z.object({
     proofHash: z.string(),
     signature: z.string(),
     network: z.literal("Solana Devnet"),
+    explorerUrl: z.string().url().nullable(),
+    mode: z.enum(["live", "simulated"]),
+    fallbackReason: z.string().optional(),
     createdAt: z.string(),
   }).nullable(),
 });
