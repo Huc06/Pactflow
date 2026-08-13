@@ -6,7 +6,9 @@ The MVP demonstrates a supplier payment workflow in which 1,000 USDC remains blo
 
 ## Status
 
-PactFlow is currently being developed as an MVP/prototype. See [PACTFLOW_SYSTEM_DESIGN.md](./PACTFLOW_SYSTEM_DESIGN.md) for the product and technical specification.
+The first interactive MVP vertical slice is implemented. It includes the AI-style workspace, schema-validated deterministic supplier-payment generation, visual workflow builder, API-driven approval state machine, blocked settlement behavior, and SHA-256 execution proof.
+
+The Solana proof boundary currently uses a clearly labeled demo adapter. A live devnet transaction can be added without changing the workflow UI or execution flow. See [PACTFLOW_SYSTEM_DESIGN.md](./PACTFLOW_SYSTEM_DESIGN.md) for the full specification.
 
 ## Planned stack
 
@@ -25,3 +27,26 @@ PactFlow is currently being developed as an MVP/prototype. See [PACTFLOW_SYSTEM_
 3. Simulate delivery and multi-party approvals.
 4. Execute payment only when all conditions pass.
 5. Create and display a Solana-verifiable proof.
+
+## Run locally
+
+```bash
+pnpm install
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000), generate the example flow, select **Test flow**, and complete the three simulation actions.
+
+## Verify
+
+```bash
+pnpm lint
+pnpm test
+pnpm build
+```
+
+## API routes
+
+- `POST /api/workflows/generate` validates a natural-language prompt and returns workflow JSON.
+- `POST /api/runs` creates a new deterministic supplier-payment run.
+- `POST /api/runs/advance` validates an action and advances the workflow state machine.
