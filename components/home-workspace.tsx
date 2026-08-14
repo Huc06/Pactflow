@@ -3,8 +3,9 @@
 import { ArrowRight, Clock3, FileText, Sparkles, WandSparkles } from "lucide-react";
 import { useState } from "react";
 import { heroPrompt, templates } from "@/lib/workflow/hero";
+import type { Workflow } from "@/lib/workflow/schema";
 
-export function HomeWorkspace({ onGenerate }: { onGenerate: () => void }) {
+export function HomeWorkspace({ onGenerate }: { onGenerate: (workflow: Workflow, source: "openai" | "deterministic-template") => void }) {
   const [prompt, setPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
   const generate = async () => {
@@ -14,8 +15,8 @@ export function HomeWorkspace({ onGenerate }: { onGenerate: () => void }) {
     try {
       const response = await fetch("/api/workflows/generate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ prompt: requestedPrompt }) });
       if (!response.ok) throw new Error("Generation failed");
-      await response.json();
-      onGenerate();
+      const data = await response.json() as { workflow: Workflow; source: "openai" | "deterministic-template" };
+      onGenerate(data.workflow, data.source);
     } finally {
       setGenerating(false);
     }
@@ -39,7 +40,7 @@ export function HomeWorkspace({ onGenerate }: { onGenerate: () => void }) {
         <div className="section-heading"><div><small>START WITH A PATTERN</small><h2>Suggested templates</h2></div><button>View all <ArrowRight size={14} /></button></div>
         <div className="template-grid">{templates.map((item, index) => <button className="template-card" key={item.name} onClick={() => { setPrompt(heroPrompt); if (index === 0) void generate(); }}><span className={`template-icon ${item.accent}`}><FileText size={19} /></span><small>{item.type}</small><h3>{item.name}</h3><p>{item.detail}</p><ArrowRight className="card-arrow" size={17} /></button>)}</div>
       </section>
-      <section className="recent-row"><div><Clock3 size={17} /><span><small>RECENT FLOW</small><b>Verified supplier payment</b></span></div><span className="draft-badge">Draft</span><p>Edited just now</p><button onClick={onGenerate}>Open flow <ArrowRight size={14} /></button></section>
+      <section className="recent-row"><div><Clock3 size={17} /><span><small>RECENT FLOW</small><b>Verified supplier payment</b></span></div><span className="draft-badge">Draft</span><p>Edited just now</p><button onClick={() => void generate()}>Open flow <ArrowRight size={14} /></button></section>
     </div>
   );
 }

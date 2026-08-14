@@ -6,7 +6,7 @@ The MVP demonstrates a supplier payment workflow in which 1,000 USDC remains blo
 
 ## Status
 
-The first interactive MVP vertical slice is implemented. It includes the AI-style workspace, schema-validated deterministic supplier-payment generation, visual workflow builder, API-driven approval state machine, blocked settlement behavior, and SHA-256 execution proof.
+The first interactive MVP vertical slice is implemented. It includes OpenAI Structured Outputs workflow generation with deterministic fallback, visual workflow builder, API-driven approval state machine, blocked settlement behavior, and SHA-256 execution proof.
 
 The Solana proof boundary supports live devnet Memo transactions and automatically falls back to a clearly labeled demo adapter when no signer is configured or the network is unavailable. See [PACTFLOW_SYSTEM_DESIGN.md](./PACTFLOW_SYSTEM_DESIGN.md) for the full specification.
 
@@ -38,6 +38,8 @@ pnpm dev
 Open [http://localhost:3000](http://localhost:3000), generate the example flow, select **Test flow**, and complete the three simulation actions.
 
 To publish proof hashes to Solana devnet, copy `.env.example` to `.env.local` and provide a funded devnet `SOLANA_SECRET_KEY`. It accepts the Solana CLI JSON byte-array format or base58. Secrets are only read in the server-side adapter and must never be committed.
+
+To generate custom workflow graphs with AI, set `OPENAI_API_KEY` and optionally `OPENAI_MODEL`. Model output is constrained with Structured Outputs, validated again with Zod, and checked for invalid references and cycles. Missing credentials, refusals, timeouts, and invalid graphs fall back to the supplier-payment template.
 
 ## Verify
 

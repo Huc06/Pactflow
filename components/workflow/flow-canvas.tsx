@@ -2,8 +2,8 @@
 
 import { Background, BackgroundVariant, Controls, Handle, Position, ReactFlow, type Node, type NodeProps } from "@xyflow/react";
 import { Check, CircleDollarSign, FileKey2, PackageCheck, ShieldCheck, Split } from "lucide-react";
-import { heroEdges, heroNodes } from "@/lib/workflow/hero";
 import type { FlowNode } from "@/lib/workflow/types";
+import type { Workflow } from "@/lib/workflow/schema";
 
 const iconMap = { event: PackageCheck, approval: ShieldCheck, condition: Split, payment: CircleDollarSign, proof: FileKey2 };
 
@@ -21,12 +21,16 @@ function PactNode({ data }: NodeProps<Node<FlowNode>>) {
 }
 
 const nodeTypes = { pact: PactNode };
-const nodes: Node<FlowNode>[] = heroNodes.map((node) => ({ id: node.id, position: node.position, type: "pact", data: node }));
-
-export function FlowCanvas({ compact = false }: { compact?: boolean }) {
+export function FlowCanvas({ workflow, compact = false }: { workflow: Workflow; compact?: boolean }) {
+  const nodes: Node<FlowNode>[] = workflow.nodes.map((node) => ({
+    id: node.id,
+    position: node.position,
+    type: "pact",
+    data: { id: node.id, kind: node.kind, label: node.label, eyebrow: node.eyebrow, detail: node.detail, position: node.position },
+  }));
   return (
     <div className={`flow-canvas ${compact ? "compact" : ""}`}>
-      <ReactFlow nodes={nodes} edges={heroEdges} nodeTypes={nodeTypes} fitView fitViewOptions={{ padding: compact ? 0.18 : 0.12 }} nodesDraggable={!compact} nodesConnectable={!compact} elementsSelectable={!compact} proOptions={{ hideAttribution: true }}>
+      <ReactFlow nodes={nodes} edges={workflow.edges} nodeTypes={nodeTypes} fitView fitViewOptions={{ padding: compact ? 0.18 : 0.12 }} nodesDraggable={!compact} nodesConnectable={!compact} elementsSelectable={!compact} proOptions={{ hideAttribution: true }}>
         <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#27343d" />
         {!compact && <Controls showInteractive={false} />}
       </ReactFlow>
