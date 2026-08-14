@@ -1,5 +1,4 @@
-import OpenAI from "openai";
-import { zodTextFormat } from "openai/helpers/zod";
+import { GoogleGenAI } from "@google/genai";
 import { z } from "zod";
 import { generateWorkflow } from "../workflow/template";
 import { workflowSchema, type Workflow } from "../workflow/schema";
@@ -21,22 +20,30 @@ const aiWorkflowSchema = z.object({
   edges: z.array(z.object({ id: z.string(), source: z.string(), target: z.string() })),
 });
 
-export type GenerationResult = { workflow: Workflow; source: "openai" | "deterministic-template"; fallbackReason?: string };
+export type GenerationResult = { workflow: Workflow; source: "gemini" | "deterministic-template"; fallbackReason?: string };
 
 export async function generateWorkflowWithFallback(prompt: string): Promise<GenerationResult> {
-  if (!process.env.OPENAI_API_KEY) return { workflow: generateWorkflow(prompt), source: "deterministic-template", fallbackReason: "OPENAI_API_KEY is not configured" };
+  if (!process.env.GEMINI_API_KEY) return { workflow: generateWorkflow(prompt), source: "deterministic-template", fallbackReason: "GEMINI_API_KEY is not configured" };
   try {
-    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 20_000, maxRetries: 1 });
-    const response = await client.responses.parse({
-      model: process.env.OPENAI_MODEL || "gpt-5-mini",
-      input: [
-        { role: "system", content: "Convert business agreements into small executable PactFlow DAGs. Use blockchain only for payment or independently verifiable proof. Always end payment workflows with a proof node. Keep private data offchain. Use 3-8 nodes with readable vertical positions and no cycles." },
-        { role: "user", content: prompt },
-      ],
-      text: { format: zodTextFormat(aiWorkflowSchema, "pactflow_workflow") },
+    const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const response = await client.models.generateContent({
+      model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+      contents: "Convert this business agreement into a small executable PactFlow DAG:\n\n" + prompt,
+      config: {
+        systemInstruction: "Convert business agreements into small executable PactFlow DAGs. Use blockchain only for payment or independently verifiable proof. Always end payment workflows with a proof node. Keep private data offchain. Use 3-8 nodes with readable vertical positions and no cycles.",
+        responseMimeType: "application/json",
+        responseJsonSchema: {
+          type: "object",
+          properties: {
+            name: { type: "string" }, description: { type: "string" },
+            nodes: { type: "array", items: { type: "object", properties: { id: { type: "string" }, kind: { type: "string", enum: ["event", "approval", "condition", "payment", "proof"] }, label: { type: "string" }, eyebrow: { type: "string" }, detail: { type: "string" }, x: { type: "number" }, y: { type: "number" } }, required: ["id", "kind", "label", "eyebrow", "detail", "x", "y"] } },
+            edges: { type: "array", items: { type: "object", properties: { id: { type: "string" }, source: { type: "string" }, target: { type: "string" } }, required: ["id", "source", "target"] } },
+          }, required: ["name", "description", "nodes", "edges"],
+        },
+      },
     });
-    if (!response.output_parsed) throw new Error("The model did not return a workflow");
-    const parsed = response.output_parsed;
+    if (!response.text) throw new Error("Gemini did not return a workflow");
+    const parsed = aiWorkflowSchema.parse(JSON.parse(response.text));
     const workflow = workflowSchema.parse({
       id: `generated-${Date.now()}`,
       name: parsed.name,
@@ -47,7 +54,7 @@ export async function generateWorkflowWithFallback(prompt: string): Promise<Gene
       edges: parsed.edges,
     });
     validateGraph(workflow);
-    return { workflow, source: "openai" };
+    return { workflow, source: "gemini" };
   } catch (error) {
     const fallbackReason = error instanceof Error ? error.message : "Unknown generation error";
     return { workflow: generateWorkflow(prompt), source: "deterministic-template", fallbackReason };

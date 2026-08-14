@@ -5,7 +5,7 @@ import { useState } from "react";
 import { heroPrompt, templates } from "@/lib/workflow/hero";
 import type { Workflow } from "@/lib/workflow/schema";
 
-export function HomeWorkspace({ onGenerate }: { onGenerate: (workflow: Workflow, source: "openai" | "deterministic-template") => void }) {
+export function HomeWorkspace({ onGenerate }: { onGenerate: (workflow: Workflow, source: "gemini" | "deterministic-template") => void }) {
   const [prompt, setPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
   const generate = async () => {
@@ -15,7 +15,7 @@ export function HomeWorkspace({ onGenerate }: { onGenerate: (workflow: Workflow,
     try {
       const response = await fetch("/api/workflows/generate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ prompt: requestedPrompt }) });
       if (!response.ok) throw new Error("Generation failed");
-      const data = await response.json() as { workflow: Workflow; source: "openai" | "deterministic-template" };
+      const data = await response.json() as { workflow: Workflow; source: "gemini" | "deterministic-template" };
       onGenerate(data.workflow, data.source);
     } finally {
       setGenerating(false);

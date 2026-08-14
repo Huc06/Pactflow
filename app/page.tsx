@@ -13,7 +13,7 @@ type Screen = "Home" | "Flows" | "Runs";
 export default function Home() {
   const [screen, setScreen] = useState<Screen>("Home");
   const [workflow, setWorkflow] = useState<Workflow>(supplierPaymentWorkflow);
-  const [source, setSource] = useState<"openai" | "deterministic-template">("deterministic-template");
+  const [source, setSource] = useState<"gemini" | "deterministic-template">("deterministic-template");
   const navigate = (item: string) => {
     if (item === "Runs") setScreen("Runs");
     else if (item === "Flows") setScreen("Flows");
