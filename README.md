@@ -1,56 +1,128 @@
 # PactFlow
 
-PactFlow turns multi-party business agreements into visual workflows that execute exactly as agreed.
+### Business agreements that execute exactly as agreed.
 
-The MVP demonstrates a supplier payment workflow in which 1,000 USDC remains blocked until both the buyer and logistics provider confirm delivery. Once its conditions are satisfied, PactFlow produces an independently verifiable Solana execution proof while keeping sensitive business data offchain.
+PactFlow turns a plain-English agreement into a visual, multi-party workflow. Conditions stay explicit, payment stays blocked until the right people confirm, and the final outcome can be independently verified on Solana.
 
-## Status
+> **Prototype status:** MVP for bounty/demo use. The default supplier-payment flow is deterministic and always runnable; Gemini and Solana are optional adapters with safe fallbacks.
 
-The first interactive MVP vertical slice is implemented. It includes Gemini Structured Outputs workflow generation with deterministic fallback, visual workflow builder, API-driven approval state machine, blocked settlement behavior, and SHA-256 execution proof.
+## The 90-second demo
 
-The Solana proof boundary supports live devnet Memo transactions and automatically falls back to a clearly labeled demo adapter when no signer is configured or the network is unavailable. See [PACTFLOW_SYSTEM_DESIGN.md](./PACTFLOW_SYSTEM_DESIGN.md) for the full specification.
+Describe:
 
-## Planned stack
+> Pay a supplier 1,000 USDC when both the buyer and logistics provider confirm delivery.
 
-- Next.js and React
-- TypeScript
-- Tailwind CSS
-- React Flow
-- Zod
-- Solana web3.js
-- pnpm
+PactFlow generates a workflow, then lets you:
 
-## Core demo
+1. Receive the delivery event.
+2. Approve as the buyer.
+3. Approve as logistics.
+4. See payment remain blocked until both approvals exist.
+5. Create a proof hash and publish a Solana Devnet Memo transaction.
 
-1. Describe a business agreement in plain English.
-2. Generate and inspect its visual workflow.
-3. Simulate delivery and multi-party approvals.
-4. Execute payment only when all conditions pass.
-5. Create and display a Solana-verifiable proof.
+Private business data stays offchain. The onchain proof commits to the workflow, approvals, and execution result.
 
-## Run locally
+## What is implemented
+
+| Surface | Behavior |
+| --- | --- |
+| Home workspace | Plain-English prompt, templates, first-run onboarding |
+| Workflow builder | React Flow canvas, custom nodes, inspector, graph metadata |
+| Execution view | Delivery and two-party approval state machine |
+| Settlement guard | Payment remains blocked until both approvals pass |
+| Proof view | SHA-256 commitment, live/simulated mode, Explorer link |
+| AI generation | Gemini structured JSON with Zod + DAG validation |
+| Solana adapter | Devnet Memo transaction with simulation fallback |
+
+## Architecture
+
+```text
+Browser
+  └─ Next.js app
+      ├─ Home / Builder / Run UI
+      ├─ API routes
+      │   ├─ Workflow generation (Gemini or template fallback)
+      │   └─ Run advancement (validated state machine)
+      └─ Server adapters
+          ├─ Zod workflow + graph validation
+          └─ Solana Devnet Memo attestation
+```
+
+The workflow JSON is the source of truth. Server-side validation rejects malformed nodes, unknown edge references, and cyclic graphs before a workflow reaches the canvas.
+
+## Quick start
+
+Requirements: Node.js 20+, pnpm 10+, and (optionally) the Solana CLI for live Devnet proofs.
 
 ```bash
+git clone https://github.com/Huc06/Pactflow.git
+cd PactFlow
 pnpm install
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000), generate the example flow, select **Test flow**, and complete the three simulation actions.
+Open [http://localhost:3000](http://localhost:3000). The app works without credentials using the deterministic template and simulated proof adapter.
 
-To publish proof hashes to Solana devnet, copy `.env.example` to `.env.local` and provide either a funded devnet `SOLANA_KEYPAIR_PATH` (recommended locally) or `SOLANA_SECRET_KEY` (useful for deployment). The secret value accepts the Solana CLI JSON byte-array format or base58. Credentials are only read in the server-side adapter and must never be committed.
+## Environment variables
 
-To generate custom workflow graphs with AI, set `GEMINI_API_KEY` and optionally `GEMINI_MODEL`. Gemini JSON output is constrained with `responseJsonSchema`, validated again with Zod, and checked for invalid references and cycles. Missing credentials, refusals, timeouts, and invalid graphs fall back to the supplier-payment template.
-
-## Verify
+Copy the example file:
 
 ```bash
-pnpm lint
-pnpm test
-pnpm build
+cp .env.example .env.local
 ```
 
-## API routes
+For Gemini workflow generation:
 
-- `POST /api/workflows/generate` validates a natural-language prompt and returns workflow JSON.
-- `POST /api/runs` creates a new deterministic supplier-payment run.
-- `POST /api/runs/advance` validates an action and advances the workflow state machine.
+```env
+GEMINI_API_KEY=your_gemini_key
+GEMINI_MODEL=gemini-2.5-flash
+```
+
+For live Solana Devnet proof publishing, use either a local keypair file or a secret key value—not both:
+
+```env
+# Recommended locally
+SOLANA_RPC_URL=https://api.devnet.solana.com
+SOLANA_KEYPAIR_PATH=/absolute/path/to/pactflow-devnet.json
+
+# Recommended for Vercel environment variables
+SOLANA_SECRET_KEY=[64-byte JSON array]
+```
+
+Use a funded **Devnet-only** wallet. Never commit `.env.local`, a keypair file, or a mainnet private key. Without a signer, PactFlow clearly labels the proof as simulated instead of blocking the demo.
+
+## Verification
+
+```bash
+pnpm lint       # ESLint
+pnpm test       # execution, adapter, and graph invariants
+pnpm build      # production build
+```
+
+## API surface
+
+- `POST /api/workflows/generate` — validates a prompt and returns a Gemini-generated or deterministic workflow.
+- `POST /api/runs` — creates a supplier-payment run.
+- `POST /api/runs/advance` — validates one event/approval and returns the next run state plus proof when complete.
+
+## Product boundaries
+
+PactFlow uses Solana where shared execution and independent verification add value. It does not attempt to be a generic automation platform, wallet, exchange, accounting integration, or enterprise auth system.
+
+Out of scope for this MVP: production treasury, SCEX/CAEX/accounting integrations, mobile apps, complex RBAC, and storing sensitive business records onchain.
+
+## Roadmap
+
+- Persist workflows and runs with a database adapter.
+- Add wallet signatures for actor approvals.
+- Add real USDC settlement behind an explicit treasury adapter.
+- Add deployment configuration for Vercel and managed RPC.
+- Expand templates beyond the supplier-payment hero flow.
+
+## Specification
+
+Read the complete product and technical design in [PACTFLOW_SYSTEM_DESIGN.md](./PACTFLOW_SYSTEM_DESIGN.md).
+
+## License
+
+Prototype code for the PactFlow project. Licensing terms will be added before production distribution.
