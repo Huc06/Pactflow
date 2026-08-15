@@ -22,6 +22,6 @@ export default function Home() {
   return <AppShell active={screen} onNavigate={navigate}>
     {screen === "Home" && <HomeWorkspace onGenerate={(nextWorkflow, nextSource) => { setWorkflow(nextWorkflow); setSource(nextSource); setScreen("Flows"); }} />}
     {screen === "Flows" && <FlowBuilder workflow={workflow} source={source} onBack={() => setScreen("Home")} onRun={() => setScreen("Runs")} />}
-    {screen === "Runs" && <RunView onBack={() => setScreen("Flows")} />}
+    {screen === "Runs" && <RunView workflow={workflow} onBack={() => setScreen("Flows")} />}
   </AppShell>;
 }
