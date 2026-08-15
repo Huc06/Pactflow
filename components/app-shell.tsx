@@ -2,6 +2,7 @@
 
 import { Blocks, Cable, FileCheck2, GitBranch, Home, PanelLeftClose, Play } from "lucide-react";
 import type { ReactNode } from "react";
+import { Onboarding } from "./onboarding";
 
 const items = [
   ["Home", Home],
@@ -28,7 +29,7 @@ export function AppShell({ children, active, onNavigate }: { children: ReactNode
           <div className="network"><i /><span><b>Solana Devnet</b><small>Connected</small></span></div>
           <div className="workspace-avatar"><span>PF</span><div><b>PactFlow Labs</b><small>Prototype workspace</small></div><PanelLeftClose size={16} /></div>
         </div>
-      </aside>
+      </aside><Onboarding />
       <main className="main-area">
         <header className="topbar"><div><FileCheck2 size={15} /> Enterprise workspace</div><span className="demo-pill">LIVE DEMO</span></header>
         {children}
