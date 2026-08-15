@@ -1,6 +1,6 @@
 "use client";
 
-import { Blocks, Cable, FileCheck2, GitBranch, Home, PanelLeftClose, Play, Sparkles } from "lucide-react";
+import { Blocks, Cable, FileCheck2, GitBranch, Home, PanelLeftClose, Play } from "lucide-react";
 import type { ReactNode } from "react";
 
 const items = [
@@ -15,7 +15,7 @@ export function AppShell({ children, active, onNavigate }: { children: ReactNode
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <div className="brand"><span className="brand-mark"><Sparkles size={17} /></span><span>PactFlow</span></div>
+        <div className="brand"><PactFlowMark /><span>PactFlow</span></div>
         <nav>
           <p className="nav-label">Workspace</p>
           {items.map(([label, Icon]) => (
@@ -35,4 +35,8 @@ export function AppShell({ children, active, onNavigate }: { children: ReactNode
       </main>
     </div>
   );
+}
+
+function PactFlowMark() {
+  return <span className="brand-mark" aria-label="PactFlow logo"><svg viewBox="0 0 24 24" role="img" aria-hidden="true"><path d="M7.2 6.25 10.1 3.4a3.4 3.4 0 0 1 4.8 0l1.9 1.9a3.4 3.4 0 0 1 0 4.8l-2.05 2.05" /><path d="m16.8 17.75-2.9 2.85a3.4 3.4 0 0 1-4.8 0l-1.9-1.9a3.4 3.4 0 0 1 0-4.8l2.05-2.05" /><path d="m9.4 14.6 5.2-5.2" /></svg></span>;
 }
