@@ -1,5 +1,6 @@
 import { Connection, Keypair, PublicKey, Transaction, TransactionInstruction, sendAndConfirmTransaction } from "@solana/web3.js";
 import bs58 from "bs58";
+import { readFile } from "node:fs/promises";
 
 const MEMO_PROGRAM_ID = new PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr");
 
@@ -12,7 +13,7 @@ export type AttestationResult = {
 };
 
 export async function attestProof(proofHash: string): Promise<AttestationResult> {
-  const secret = process.env.SOLANA_SECRET_KEY;
+  const secret = await loadSecretKey();
   if (!secret) return simulatedAttestation(proofHash, "SOLANA_SECRET_KEY is not configured");
 
   try {
@@ -29,6 +30,12 @@ export async function attestProof(proofHash: string): Promise<AttestationResult>
     const message = error instanceof Error ? error.message : "Unknown Solana error";
     return simulatedAttestation(proofHash, message);
   }
+}
+
+async function loadSecretKey() {
+  if (process.env.SOLANA_SECRET_KEY) return process.env.SOLANA_SECRET_KEY;
+  if (process.env.SOLANA_KEYPAIR_PATH) return readFile(process.env.SOLANA_KEYPAIR_PATH, "utf8");
+  return null;
 }
 
 export function parseSecretKey(value: string): Uint8Array {

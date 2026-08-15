@@ -37,7 +37,7 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000), generate the example flow, select **Test flow**, and complete the three simulation actions.
 
-To publish proof hashes to Solana devnet, copy `.env.example` to `.env.local` and provide a funded devnet `SOLANA_SECRET_KEY`. It accepts the Solana CLI JSON byte-array format or base58. Secrets are only read in the server-side adapter and must never be committed.
+To publish proof hashes to Solana devnet, copy `.env.example` to `.env.local` and provide either a funded devnet `SOLANA_KEYPAIR_PATH` (recommended locally) or `SOLANA_SECRET_KEY` (useful for deployment). The secret value accepts the Solana CLI JSON byte-array format or base58. Credentials are only read in the server-side adapter and must never be committed.
 
 To generate custom workflow graphs with AI, set `GEMINI_API_KEY` and optionally `GEMINI_MODEL`. Gemini JSON output is constrained with `responseJsonSchema`, validated again with Zod, and checked for invalid references and cycles. Missing credentials, refusals, timeouts, and invalid graphs fall back to the supplier-payment template.
 
