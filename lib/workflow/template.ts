@@ -1,5 +1,6 @@
 import { heroEdges, heroNodes } from "./hero";
 import { workflowSchema, type Workflow } from "./schema";
+import type { FlowNode } from "./types";
 
 const configs: Record<string, Record<string, unknown>> = {
   delivery: { event: "shipment.delivered" },
@@ -21,5 +22,25 @@ export const supplierPaymentWorkflow: Workflow = workflowSchema.parse({
 });
 
 export function generateWorkflow(prompt: string): Workflow {
+  const text = prompt.toLowerCase();
+  if (/account|accounting|invoice|bookkeep|reconcil|finance|expense/.test(text)) return makeTemplate("accounting", "Invoice approval & reconciliation", "Route an invoice through finance approval before recording the settlement proof.", [
+    ["invoice", "event", "Invoice received", "Accounting event", "invoice.received", { x: 330, y: 20 }],
+    ["finance", "approval", "Finance approval", "Controller", "Required signer", { x: 330, y: 175 }],
+    ["match", "condition", "Invoice matched", "Accounting check", "PO + receipt + invoice", { x: 330, y: 330 }],
+    ["payment", "payment", "Release settlement", "Accounts payable", "1,000 USDC · optional", { x: 330, y: 485 }],
+    ["proof", "proof", "Record accounting proof", "Attestation", "Solana Devnet", { x: 330, y: 640 }],
+  ], [["e1", "invoice", "finance"], ["e2", "finance", "match"], ["e3", "match", "payment"], ["e4", "payment", "proof"]], prompt);
+  if (/escrow|freelance|milestone/.test(text)) return makeTemplate("escrow", "Freelancer milestone escrow", "Release funds after a client accepts the completed milestone.", [
+    ["milestone", "event", "Milestone submitted", "Business event", "milestone.submitted", { x: 330, y: 20 }],
+    ["client", "approval", "Client acceptance", "Project owner", "Required signer", { x: 330, y: 175 }],
+    ["condition", "condition", "Milestone accepted", "Condition", "Acceptance required", { x: 330, y: 330 }],
+    ["payment", "payment", "Release escrow", "Solana payment", "Funds → freelancer", { x: 330, y: 485 }],
+    ["proof", "proof", "Record proof", "Attestation", "Solana Devnet", { x: 330, y: 640 }],
+  ], [["e1", "milestone", "client"], ["e2", "client", "condition"], ["e3", "condition", "payment"], ["e4", "payment", "proof"]], prompt);
   return workflowSchema.parse({ ...supplierPaymentWorkflow, description: `Generated from: ${prompt}` });
+}
+
+type TemplateNode = [string, FlowNode["kind"], string, string, string, { x: number; y: number }];
+function makeTemplate(id: string, name: string, description: string, rawNodes: TemplateNode[], rawEdges: [string, string, string][], prompt: string): Workflow {
+  return workflowSchema.parse({ id: `${id}-template`, name, description: `${description} Prompt: ${prompt}`, version: 1, status: "draft", nodes: rawNodes.map(([nodeId, kind, label, eyebrow, detail, position]) => ({ id: nodeId, kind, label, eyebrow, detail, position, config: {} })), edges: rawEdges.map(([edgeId, source, target]) => ({ id: edgeId, source, target })) });
 }

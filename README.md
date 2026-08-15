@@ -75,7 +75,7 @@ For Gemini workflow generation:
 
 ```env
 GEMINI_API_KEY=your_gemini_key
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-flash-latest
 ```
 
 For live Solana Devnet proof publishing, use either a local keypair file or a secret key value—not both:

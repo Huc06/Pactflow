@@ -4,7 +4,7 @@ import { generateWorkflow } from "../workflow/template";
 import { workflowSchema, type Workflow } from "../workflow/schema";
 
 const aiNodeSchema = z.object({
-  id: z.string().regex(/^[a-z][a-z0-9_]*$/),
+  id: z.string().min(1),
   kind: z.enum(["event", "approval", "condition", "payment", "proof"]),
   label: z.string(),
   eyebrow: z.string(),
@@ -27,7 +27,7 @@ export async function generateWorkflowWithFallback(prompt: string): Promise<Gene
   try {
     const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const response = await client.models.generateContent({
-      model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+      model: process.env.GEMINI_MODEL || "gemini-flash-latest",
       contents: "Convert this business agreement into a small executable PactFlow DAG:\n\n" + prompt,
       config: {
         systemInstruction: "Convert business agreements into small executable PactFlow DAGs. Use blockchain only for payment or independently verifiable proof. Always end payment workflows with a proof node. Keep private data offchain. Use 3-8 nodes with readable vertical positions and no cycles.",
@@ -44,14 +44,16 @@ export async function generateWorkflowWithFallback(prompt: string): Promise<Gene
     });
     if (!response.text) throw new Error("Gemini did not return a workflow");
     const parsed = aiWorkflowSchema.parse(JSON.parse(response.text));
+    const idMap = new Map<string, string>();
+    parsed.nodes.forEach((node, index) => idMap.set(node.id, `${node.id.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^[^a-z]+/, "node_") || "node"}_${index}`));
     const workflow = workflowSchema.parse({
       id: `generated-${Date.now()}`,
       name: parsed.name,
       description: parsed.description,
       version: 1,
       status: "draft",
-      nodes: parsed.nodes.map((node) => ({ id: node.id, kind: node.kind, label: node.label, eyebrow: node.eyebrow, detail: node.detail, position: { x: node.x, y: node.y }, config: {} })),
-      edges: parsed.edges,
+      nodes: parsed.nodes.map((node) => ({ id: idMap.get(node.id), kind: node.kind, label: node.label, eyebrow: node.eyebrow, detail: node.detail, position: { x: node.x, y: node.y }, config: {} })),
+      edges: parsed.edges.map((edge) => ({ ...edge, source: idMap.get(edge.source) || edge.source, target: idMap.get(edge.target) || edge.target })),
     });
     validateGraph(workflow);
     return { workflow, source: "gemini" };
