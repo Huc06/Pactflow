@@ -32,7 +32,10 @@ export type Workflow = z.infer<typeof workflowSchema>;
 
 export const generateFlowRequestSchema = z.object({ prompt: z.string().trim().min(5).max(2_000) });
 
-export const runActionSchema = z.enum(["delivery_received", "buyer_approved", "logistics_approved"]);
+export const runActionSchema = z.union([
+  z.enum(["delivery_received", "buyer_approved", "logistics_approved"]),
+  z.object({ type: z.literal("complete_node"), nodeId: z.string().min(1) }),
+]);
 export const runStatusSchema = z.enum(["waiting", "completed", "failed"]);
 export const nodeRunStatusSchema = z.enum(["waiting", "ready", "completed", "blocked", "verified"]);
 
@@ -41,6 +44,8 @@ export const workflowRunSchema = z.object({
   workflowId: z.string(),
   workflowVersion: z.number().int().positive(),
   status: runStatusSchema,
+  workflowName: z.string().default("Verified supplier payment"),
+  signals: z.record(z.boolean()).default({}),
   events: z.object({ deliveryReceived: z.boolean() }),
   approvals: z.object({ buyer: z.boolean(), logistics: z.boolean() }),
   nodeRuns: z.record(nodeRunStatusSchema),

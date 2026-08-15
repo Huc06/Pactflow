@@ -7,8 +7,8 @@ describe("workflow compiler guard", () => {
     expect(compileWorkflow(supplierPaymentWorkflow).ready).toBe(true);
   });
 
-  it("keeps generated non-hero workflows preview-only", () => {
-    const workflow = { ...supplierPaymentWorkflow, id: "generated-accounting" };
+  it("keeps incomplete workflows preview-only", () => {
+    const workflow = { ...supplierPaymentWorkflow, nodes: supplierPaymentWorkflow.nodes.filter((node) => node.kind !== "event") };
     const plan = compileWorkflow(workflow);
     expect(plan.ready).toBe(false);
     expect(plan.mode).toBe("preview-only");

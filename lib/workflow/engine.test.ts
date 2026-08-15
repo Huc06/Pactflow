@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { advanceRun, createRun } from "./engine";
+import { generateWorkflow } from "./template";
 
 describe("workflow execution engine", () => {
   it("keeps payment blocked before delivery and approvals", () => {
@@ -33,5 +34,22 @@ describe("workflow execution engine", () => {
     expect(run.proof?.proofHash).toMatch(/^[a-f0-9]{64}$/);
     expect(run.proof?.mode).toBe("simulated");
     expect(run.proof?.explorerUrl).toBeNull();
+  });
+
+  it.each([
+    "Release freelancer escrow after the client approves milestone 2.",
+    "Create a revenue split between creator and agency after a sale settles.",
+    "Settle a purchase order when the receipt and invoice match.",
+    "Create an accounting workflow for invoice approval and reconciliation.",
+  ])("executes the complete %s recipe", async (prompt) => {
+    const workflow = generateWorkflow(prompt);
+    let run = createRun(workflow);
+    for (let guard = 0; guard < workflow.nodes.length + 2 && run.status !== "completed"; guard += 1) {
+      const next = workflow.nodes.find((node) => run.nodeRuns[node.id] === "ready" && (node.kind === "event" || node.kind === "approval"));
+      expect(next).toBeDefined();
+      run = await advanceRun(run, { type: "complete_node", nodeId: next!.id }, workflow);
+    }
+    expect(run.status).toBe("completed");
+    expect(run.proof).not.toBeNull();
   });
 });

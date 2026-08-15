@@ -28,11 +28,13 @@ Private business data stays offchain. The onchain proof commits to the workflow,
 | --- | --- |
 | Home workspace | Plain-English prompt, templates, first-run onboarding |
 | Workflow builder | React Flow canvas, custom nodes, inspector, graph metadata |
-| Execution view | Delivery and two-party approval state machine |
+| Execution view | Generic DAG state machine with workflow-specific ready actions |
 | Settlement guard | Payment remains blocked until both approvals pass |
 | Proof view | SHA-256 commitment, live/simulated mode, Explorer link |
 | AI generation | Gemini structured JSON with Zod + DAG validation |
 | Solana adapter | Devnet Memo transaction with simulation fallback |
+
+All five demo recipes now execute end-to-end in the simulator: supplier payment, freelancer escrow, revenue split, purchase-order settlement, and accounting reconciliation. Event and approval nodes wait for an explicit action; condition, payment, and proof nodes advance automatically when their upstream nodes complete.
 
 ## Architecture
 
@@ -48,7 +50,7 @@ Browser
           └─ Solana Devnet Memo attestation
 ```
 
-The workflow JSON is the source of truth. Server-side validation rejects malformed nodes, unknown edge references, and cyclic graphs before a workflow reaches the canvas.
+The workflow JSON is the source of truth. Server-side validation rejects malformed nodes, unknown edge references, and cyclic graphs before a workflow reaches the canvas. A compile step refuses to run graphs without an event trigger or proof node.
 
 ## Quick start
 
@@ -117,7 +119,7 @@ Out of scope for this MVP: production treasury, SCEX/CAEX/accounting integration
 - Add wallet signatures for actor approvals.
 - Add real USDC settlement behind an explicit treasury adapter.
 - Add deployment configuration for Vercel and managed RPC.
-- Expand templates beyond the supplier-payment hero flow.
+- Expand templates beyond the five executable POC recipes.
 
 ## Specification
 

@@ -37,6 +37,19 @@ export function generateWorkflow(prompt: string): Workflow {
     ["payment", "payment", "Release escrow", "Solana payment", "Funds → freelancer", { x: 330, y: 485 }],
     ["proof", "proof", "Record proof", "Attestation", "Solana Devnet", { x: 330, y: 640 }],
   ], [["e1", "milestone", "client"], ["e2", "client", "condition"], ["e3", "condition", "payment"], ["e4", "payment", "proof"]], prompt);
+  if (/revenue|split|distribution|creator|agency/.test(text)) return makeTemplate("revenue-split", "Creator revenue split", "Distribute settled revenue between creator and agency, then record the result.", [
+    ["sale", "event", "Sale settled", "Business event", "sale.settled", { x: 330, y: 20 }],
+    ["split", "condition", "Calculate 70 / 30 split", "Distribution rule", "Creator + agency", { x: 330, y: 175 }],
+    ["distribution", "payment", "Distribute revenue", "Settlement", "Creator and agency", { x: 330, y: 330 }],
+    ["proof", "proof", "Record split proof", "Attestation", "Solana Devnet", { x: 330, y: 485 }],
+  ], [["e1", "sale", "split"], ["e2", "split", "distribution"], ["e3", "distribution", "proof"]], prompt);
+  if (/purchase|order|receipt|invoice match/.test(text)) return makeTemplate("purchase-order", "Purchase order settlement", "Match the purchase order, receipt, and invoice before settlement.", [
+    ["order", "event", "Purchase order approved", "Business event", "purchase_order.approved", { x: 330, y: 20 }],
+    ["receipt", "condition", "Receipt matched", "Operations check", "Goods received", { x: 330, y: 175 }],
+    ["invoice", "approval", "Invoice approved", "Accounts payable", "Required signer", { x: 330, y: 330 }],
+    ["payment", "payment", "Settle purchase order", "Settlement", "Supplier payment", { x: 330, y: 485 }],
+    ["proof", "proof", "Record settlement proof", "Attestation", "Solana Devnet", { x: 330, y: 640 }],
+  ], [["e1", "order", "receipt"], ["e2", "receipt", "invoice"], ["e3", "invoice", "payment"], ["e4", "payment", "proof"]], prompt);
   return workflowSchema.parse({ ...supplierPaymentWorkflow, description: `Generated from: ${prompt}` });
 }
 

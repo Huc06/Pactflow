@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { advanceRun } from "@/lib/workflow/engine";
-import { advanceRunRequestSchema } from "@/lib/workflow/schema";
+import { advanceRunRequestSchema, workflowSchema } from "@/lib/workflow/schema";
+import { supplierPaymentWorkflow } from "@/lib/workflow/template";
 
 export async function POST(request: Request) {
-  const input = advanceRunRequestSchema.safeParse(await request.json());
+  const body = await request.json();
+  const input = advanceRunRequestSchema.safeParse(body);
   if (!input.success) return NextResponse.json({ error: "Invalid run state or action." }, { status: 400 });
-  return NextResponse.json({ run: await advanceRun(input.data.run, input.data.action) });
+  const workflow = workflowSchema.safeParse(body.workflow).success ? workflowSchema.parse(body.workflow) : supplierPaymentWorkflow;
+  return NextResponse.json({ run: await advanceRun(input.data.run, input.data.action, workflow) });
 }
