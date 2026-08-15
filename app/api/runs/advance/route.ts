@@ -8,5 +8,9 @@ export async function POST(request: Request) {
   const input = advanceRunRequestSchema.safeParse(body);
   if (!input.success) return NextResponse.json({ error: "Invalid run state or action." }, { status: 400 });
   const workflow = workflowSchema.safeParse(body.workflow).success ? workflowSchema.parse(body.workflow) : supplierPaymentWorkflow;
-  return NextResponse.json({ run: await advanceRun(input.data.run, input.data.action, workflow) });
+  try {
+    return NextResponse.json({ run: await advanceRun(input.data.run, input.data.action, workflow) });
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Execution failed." }, { status: 502 });
+  }
 }

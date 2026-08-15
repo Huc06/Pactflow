@@ -28,7 +28,7 @@ export async function attestProof(proofHash: string): Promise<AttestationResult>
     return { signature, network: "Solana Devnet", explorerUrl: `https://explorer.solana.com/tx/${signature}?cluster=devnet`, mode: "live" };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown Solana error";
-    return simulatedAttestation(proofHash, message);
+    throw new Error(`Solana Devnet attestation failed: ${message}`);
   }
 }
 
