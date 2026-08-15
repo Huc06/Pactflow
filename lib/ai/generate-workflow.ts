@@ -2,6 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import { z } from "zod";
 import { generateWorkflow } from "../workflow/template";
 import { workflowSchema, type Workflow } from "../workflow/schema";
+import { compileWorkflow } from "../workflow/compiler";
 
 const aiNodeSchema = z.object({
   id: z.string().min(1),
@@ -20,10 +21,10 @@ const aiWorkflowSchema = z.object({
   edges: z.array(z.object({ id: z.string(), source: z.string(), target: z.string() })),
 });
 
-export type GenerationResult = { workflow: Workflow; source: "gemini" | "deterministic-template"; fallbackReason?: string };
+export type GenerationResult = { workflow: Workflow; source: "gemini" | "deterministic-template"; execution: ReturnType<typeof compileWorkflow>; fallbackReason?: string };
 
 export async function generateWorkflowWithFallback(prompt: string): Promise<GenerationResult> {
-  if (!process.env.GEMINI_API_KEY) return { workflow: generateWorkflow(prompt), source: "deterministic-template", fallbackReason: "GEMINI_API_KEY is not configured" };
+  if (!process.env.GEMINI_API_KEY) { const workflow = generateWorkflow(prompt); return { workflow, source: "deterministic-template", execution: compileWorkflow(workflow), fallbackReason: "GEMINI_API_KEY is not configured" }; }
   try {
     const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const response = await client.models.generateContent({
@@ -56,10 +57,11 @@ export async function generateWorkflowWithFallback(prompt: string): Promise<Gene
       edges: parsed.edges.map((edge) => ({ ...edge, source: idMap.get(edge.source) || edge.source, target: idMap.get(edge.target) || edge.target })),
     });
     validateGraph(workflow);
-    return { workflow, source: "gemini" };
+    return { workflow, source: "gemini", execution: compileWorkflow(workflow) };
   } catch (error) {
     const fallbackReason = error instanceof Error ? error.message : "Unknown generation error";
-    return { workflow: generateWorkflow(prompt), source: "deterministic-template", fallbackReason };
+    const workflow = generateWorkflow(prompt);
+    return { workflow, source: "deterministic-template", execution: compileWorkflow(workflow), fallbackReason };
   }
 }
 

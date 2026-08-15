@@ -4,8 +4,9 @@ import { ArrowRight, Clock3, FileText, Sparkles, WandSparkles } from "lucide-rea
 import { useState } from "react";
 import { heroPrompt, templates } from "@/lib/workflow/hero";
 import type { Workflow } from "@/lib/workflow/schema";
+import type { ExecutionPlan } from "@/lib/workflow/compiler";
 
-export function HomeWorkspace({ onGenerate }: { onGenerate: (workflow: Workflow, source: "gemini" | "deterministic-template") => void }) {
+export function HomeWorkspace({ onGenerate }: { onGenerate: (workflow: Workflow, source: "gemini" | "deterministic-template", execution: ExecutionPlan) => void }) {
   const [prompt, setPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
   const generate = async () => {
@@ -15,8 +16,8 @@ export function HomeWorkspace({ onGenerate }: { onGenerate: (workflow: Workflow,
     try {
       const response = await fetch("/api/workflows/generate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ prompt: requestedPrompt }) });
       if (!response.ok) throw new Error("Generation failed");
-      const data = await response.json() as { workflow: Workflow; source: "gemini" | "deterministic-template" };
-      onGenerate(data.workflow, data.source);
+      const data = await response.json() as { workflow: Workflow; source: "gemini" | "deterministic-template"; execution: ExecutionPlan };
+      onGenerate(data.workflow, data.source, data.execution);
     } finally {
       setGenerating(false);
     }
