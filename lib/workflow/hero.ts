@@ -22,8 +22,9 @@ export const heroEdges: Edge[] = [
 ];
 
 export const templates = [
-  { name: "Verified supplier payment", type: "Payment", detail: "Two-party delivery confirmation", accent: "green" },
-  { name: "Freelancer escrow", type: "Escrow", detail: "Release by milestone acceptance", accent: "blue" },
-  { name: "Revenue split", type: "Distribution", detail: "Automatic partner settlement", accent: "amber" },
-  { name: "Purchase order settlement", type: "Settlement", detail: "Match order, receipt, and invoice", accent: "violet" },
+  { name: "Verified supplier payment", type: "Payment", detail: "Two-party delivery confirmation", prompt: heroPrompt, accent: "green" },
+  { name: "Freelancer escrow", type: "Escrow", detail: "Release by milestone acceptance", prompt: "Release freelancer escrow when the client approves milestone 2.", accent: "blue" },
+  { name: "Revenue split", type: "Distribution", detail: "Automatic partner settlement", prompt: "Split creator revenue 70/30 between creator and agency after a sale settles.", accent: "amber" },
+  { name: "Purchase order settlement", type: "Settlement", detail: "Match order, receipt, and invoice", prompt: "Approve a purchase order and settle it when the invoice matches the receipt.", accent: "violet" },
+  { name: "Accounting reconciliation", type: "Accounting", detail: "Invoice, approval, and ledger proof", prompt: "Create an accounting workflow for invoice approval, three-way matching, and ledger proof.", accent: "green" },
 ];

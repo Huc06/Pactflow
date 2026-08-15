@@ -9,9 +9,7 @@ import type { ExecutionPlan } from "@/lib/workflow/compiler";
 export function HomeWorkspace({ onGenerate }: { onGenerate: (workflow: Workflow, source: "gemini" | "deterministic-template", execution: ExecutionPlan) => void }) {
   const [prompt, setPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
-  const generate = async () => {
-    const requestedPrompt = prompt.trim() || heroPrompt;
-    if (!prompt.trim()) setPrompt(requestedPrompt);
+  const generateWith = async (requestedPrompt: string) => {
     setGenerating(true);
     try {
       const response = await fetch("/api/workflows/generate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ prompt: requestedPrompt }) });
@@ -22,6 +20,7 @@ export function HomeWorkspace({ onGenerate }: { onGenerate: (workflow: Workflow,
       setGenerating(false);
     }
   };
+  const generate = () => generateWith(prompt.trim() || heroPrompt);
   return (
     <div className="page home-page">
       <section className="hero">
@@ -38,8 +37,8 @@ export function HomeWorkspace({ onGenerate }: { onGenerate: (workflow: Workflow,
         <button className="hero-example" onClick={() => setPrompt(heroPrompt)}><span>Try an example</span> “Pay a supplier when buyer and logistics confirm delivery.”</button>
       </section>
       <section className="section-block">
-        <div className="section-heading"><div><small>START WITH A PATTERN</small><h2>Suggested templates</h2></div><button>View all <ArrowRight size={14} /></button></div>
-        <div className="template-grid">{templates.map((item, index) => <button className="template-card" key={item.name} onClick={() => { setPrompt(heroPrompt); if (index === 0) void generate(); }}><span className={`template-icon ${item.accent}`}><FileText size={19} /></span><small>{item.type}</small><h3>{item.name}</h3><p>{item.detail}</p><ArrowRight className="card-arrow" size={17} /></button>)}</div>
+        <div className="section-heading"><div><small>START WITH A PATTERN</small><h2>Suggested templates</h2></div><button onClick={() => setPrompt("Create an accounting workflow for invoice approval and reconciliation.")}>View all <ArrowRight size={14} /></button></div>
+        <div className="template-grid">{templates.map((item) => <button className="template-card" key={item.name} onClick={() => { setPrompt(item.prompt); void generateWith(item.prompt); }}><span className={`template-icon ${item.accent}`}><FileText size={19} /></span><small>{item.type}</small><h3>{item.name}</h3><p>{item.detail}</p><ArrowRight className="card-arrow" size={17} /></button>)}</div>
       </section>
       <section className="recent-row"><div><Clock3 size={17} /><span><small>RECENT FLOW</small><b>Verified supplier payment</b></span></div><span className="draft-badge">Draft</span><p>Edited just now</p><button onClick={() => void generate()}>Open flow <ArrowRight size={14} /></button></section>
     </div>
