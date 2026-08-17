@@ -21,6 +21,12 @@ export function HomeWorkspace({ onGenerate }: { onGenerate: (workflow: Workflow,
     }
   };
   const generate = () => generateWith(prompt.trim() || heroPrompt);
+  const quickPrompts: Record<string, string> = {
+    Payment: heroPrompt,
+    Escrow: "Release freelancer escrow when the client approves milestone 2.",
+    Approval: "Route an invoice for finance approval before releasing settlement.",
+    "Revenue split": "Split creator revenue 70/30 between creator and agency after a sale settles.",
+  };
   return (
     <div className="page home-page">
       <section className="hero">
@@ -30,7 +36,7 @@ export function HomeWorkspace({ onGenerate }: { onGenerate: (workflow: Workflow,
         <div className="prompt-box">
           <textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Describe a business process, payment, or agreement..." />
           <div className="prompt-actions">
-            <div className="chips">{["Payment", "Escrow", "Approval", "Revenue split"].map((chip) => <button key={chip} onClick={() => setPrompt(heroPrompt)}>{chip}</button>)}</div>
+            <div className="chips">{Object.keys(quickPrompts).map((chip) => <button type="button" key={chip} disabled={generating} onClick={() => { const requestedPrompt = quickPrompts[chip]; setPrompt(requestedPrompt); void generateWith(requestedPrompt); }}>{chip}</button>)}</div>
             <button className="primary-button" onClick={generate} disabled={generating}><WandSparkles size={16} />{generating ? "Building flow..." : "Generate flow"}<ArrowRight size={15} /></button>
           </div>
         </div>
